@@ -1,59 +1,57 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttercrypto/data/crypto_data.dart';
-import 'package:fluttercrypto/modules/crypto_presenter.dart';
+import 'package:fluttercrypto/data/quote_data.dart';
+import 'package:fluttercrypto/modules/quote_presenter.dart';
 
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => new _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> implements CryptoListViewContract {
-  CryptoListPresenter _presenter;
-  List<Crypto> _currencies;
+class _HomePageState extends State<HomePage> implements QuoteListViewContract {
+  QuoteListPresenter _presenter;
+  List<Quote> _quotes;
   bool _isLoading;
-  final List<MaterialColor> _colors = [Colors.blue, Colors.indigo, Colors.red];
 
   _HomePageState() {
-    _presenter = new CryptoListPresenter(this);
+    _presenter = new QuoteListPresenter(this);
   }
 
   @override
   void initState() {
     super.initState();
     _isLoading = true;
-    _presenter.loadCurrencies();
+    _presenter.loadQuotes();
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text("Crypto App"),
+          title: new Text("Quotes"),
           elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
         ),
         body: _isLoading
             ? new Center(
           child: new CircularProgressIndicator(),
         )
-            : _cryptoWidget());
+            : _quotesWidget());
   }
 
-  Widget _cryptoWidget() {
+  Widget _quotesWidget() {
     return new Container(
         child: new Column(
           children: <Widget>[
             new Flexible(
               child: new ListView.builder(
-                itemCount: _currencies.length,
+                itemCount: _quotes.length * 2, // Dividers are items too
                 itemBuilder: (BuildContext context, int index) {
                   final int i = index ~/ 2;
-                  final Crypto currency = _currencies[i];
-                  final MaterialColor color = _colors[i % _colors.length];
+                  final Quote quote = _quotes[i];
                   if (index.isOdd) {
                     return new Divider();
                   }
-                  return _getListItemUi(currency, color);
+                  return _getListItemUi(quote);
                 },
               ),
             )
@@ -61,23 +59,28 @@ class _HomePageState extends State<HomePage> implements CryptoListViewContract {
         ));
   }
 
-  ListTile _getListItemUi(Crypto currency, MaterialColor color) {
+  ListTile _getListItemUi(Quote quote) {
     return new ListTile(
-      title: new Text(currency.name,
+      title: new Text(quote.symbol,
           style: new TextStyle(fontWeight: FontWeight.bold)),
       subtitle:
-      _getSubtitleText(currency.price_usd, currency.percent_change_1h),
+      _getSubtitleText(quote),
       isThreeLine: true,
     );
   }
 
-  Widget _getSubtitleText(String priceUSD, String percentageChange) {
+  Widget _getSubtitleText(Quote quote) {
+    String name = quote.name;
+    double priceUSD = quote.lastPrice;
+    double percentageChange = quote.percentChange;
+    TextSpan nameTextWidget = new TextSpan(
+        text: "$name\n", style: new TextStyle(color: Colors.black));
     TextSpan priceTextWidget = new TextSpan(
         text: "\$$priceUSD\n", style: new TextStyle(color: Colors.black));
-    String percentageChangeText = "1 hour: $percentageChange%";
+    String percentageChangeText = "$percentageChange%";
     TextSpan percentageChangeTextWidget;
 
-    if (double.parse(percentageChange) > 0) {
+    if (percentageChange > 0) {
       percentageChangeTextWidget = new TextSpan(
           text: percentageChangeText,
           style: new TextStyle(color: Colors.green));
@@ -88,21 +91,19 @@ class _HomePageState extends State<HomePage> implements CryptoListViewContract {
 
     return new RichText(
         text: new TextSpan(
-            children: [priceTextWidget, percentageChangeTextWidget]));
+            children: [nameTextWidget, priceTextWidget, percentageChangeTextWidget]));
   }
 
   @override
-  void onLoadCryptoComplete(List<Crypto> items) {
-    // TODO: implement onLoadCryptoComplete
-
+  void onLoadQuotesComplete(List<Quote> items) {
     setState(() {
-      _currencies = items;
+      _quotes = items;
       _isLoading = false;
     });
   }
 
   @override
-  void onLoadCryptoError() {
-    // TODO: implement onLoadCryptoError
+  void onLoadQuotesError() {
+    // TODO: implement onLoadQuotesError
   }
 }
