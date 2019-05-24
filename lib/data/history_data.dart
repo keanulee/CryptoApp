@@ -2,48 +2,39 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class Quote {
+class History {
   String symbol;
-  String name;
-  num lastPrice;
+  String tradingDay;
   num open;
   num close;
   num high;
   num low;
-  num netChange;
-  num percentChange;
   int volume;
 
-  Quote({
+  History({
     this.symbol,
-    this.name,
-    this.lastPrice,
+    this.tradingDay,
     this.open,
     this.close,
     this.high,
     this.low,
-    this.netChange,
-    this.percentChange,
     this.volume,
   });
 
-  Quote.fromMap(Map<String, dynamic> map)
+  History.fromMap(Map<String, dynamic> map)
       : symbol = map['symbol'],
-        name = map['name'],
-        lastPrice = map['lastPrice'],
+        tradingDay = map['tradingDay'],
         open = map['open'],
         close = map['close'],
         high = map['high'],
         low = map['low'],
-        netChange = map['netChange'],
-        percentChange = map['percentChange'],
         volume = map['volume'];
 }
 
-class QuoteRepository {
-  String quoteUrl = "https://marketdata.websol.barchart.com/getQuote.json?apikey=73f507126db3ece2eae3dc738fc4f54f&symbols=SCHB%2CSCHF%2CSCHE%2CVTI%2CVXUS";
-  Future<List<Quote>> fetchQuotes() async {
-    http.Response response = await http.get(quoteUrl);
+class HistoryRepository {
+  Future<List<History>> fetchHistory(String symbol) async {
+    String historyUrl = "https://marketdata.websol.barchart.com/getHistory.json?apikey=73f507126db3ece2eae3dc738fc4f54f&symbol=$symbol&type=daily&startDate=20190101&maxRecords=20&order=desc";
+    http.Response response = await http.get(historyUrl);
     final Map responseBody = json.decode(response.body);
     final List results = responseBody["results"];
     final statusCode = response.statusCode;
@@ -52,7 +43,7 @@ class QuoteRepository {
           "An error ocurred : [Status Code : $statusCode]");
     }
 
-    return results.map((c) => new Quote.fromMap(c)).toList();
+    return results.map((c) => new History.fromMap(c)).toList();
   }
 }
 

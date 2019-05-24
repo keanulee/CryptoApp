@@ -64,9 +64,7 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
     return new ListTile(
       title: new Text(quote.symbol,
           style: new TextStyle(fontWeight: FontWeight.bold)),
-      subtitle:
-      _getSubtitleText(quote),
-      isThreeLine: true,
+      subtitle: _getSubtitleText(quote),
       onTap: () {
         Navigator.push(
             context,
@@ -78,27 +76,30 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
 
   Widget _getSubtitleText(Quote quote) {
     String name = quote.name;
-    double priceUSD = quote.lastPrice;
-    double percentageChange = quote.percentChange;
+    num lastPrice = quote.lastPrice;
+    num netChange = quote.netChange;
+    num percentageChange = quote.percentChange;
     TextSpan nameTextWidget = new TextSpan(
         text: "$name\n", style: new TextStyle(color: Colors.black));
     TextSpan priceTextWidget = new TextSpan(
-        text: "\$$priceUSD\n", style: new TextStyle(color: Colors.black));
-    String percentageChangeText = "$percentageChange%";
-    TextSpan percentageChangeTextWidget;
+        text: "\$$lastPrice\n", style: new TextStyle(color: Colors.black));
+    TextSpan changeTextWidget;
 
     if (percentageChange > 0) {
-      percentageChangeTextWidget = new TextSpan(
-          text: percentageChangeText,
-          style: new TextStyle(color: Colors.green));
+      changeTextWidget = new TextSpan(
+        text: "+$netChange ($percentageChange%)",
+        style: new TextStyle(color: Colors.green)
+      );
     } else {
-      percentageChangeTextWidget = new TextSpan(
-          text: percentageChangeText, style: new TextStyle(color: Colors.red));
+      changeTextWidget = new TextSpan(
+        text: "$netChange ($percentageChange%)",
+        style: new TextStyle(color: Colors.red)
+      );
     }
 
     return new RichText(
         text: new TextSpan(
-            children: [nameTextWidget, priceTextWidget, percentageChangeTextWidget]));
+            children: [nameTextWidget, priceTextWidget, changeTextWidget]));
   }
 
   @override
