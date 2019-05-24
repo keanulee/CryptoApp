@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttercrypto/data/quote_data.dart';
-import 'package:fluttercrypto/modules/quote_presenter.dart';
+import 'data/quote_data.dart';
+import 'modules/quote_presenter.dart';
+import 'detail_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -66,6 +67,12 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
       subtitle:
       _getSubtitleText(quote),
       isThreeLine: true,
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DetailPage(quote: quote)));
+      }
     );
   }
 
