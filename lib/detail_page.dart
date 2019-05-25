@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_candlesticks/flutter_candlesticks.dart';
 import 'data/quote_data.dart';
 import 'data/history_data.dart';
 import 'modules/history_presenter.dart';
-
 
 class DetailPage extends StatefulWidget {
   final Quote quote;
@@ -27,15 +27,35 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
   @override
   void initState() {
     super.initState();
+    _isLoading = true;
     _refresh();
   }
 
   Future<void> _refresh() {
-    _isLoading = true;
-    return _presenter.loadHistorys(_quote.symbol);
+    return _presenter.loadHistory(_quote.symbol);
   }
 
+  @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_quote.symbol),
+        elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
+      ),
+      body: new Column(
+        children: <Widget>[
+          _quoteWidget(),
+          new Flexible(
+            child: _isLoading
+              ? new Center(child: new CircularProgressIndicator())
+              : _historyWidget()
+          )
+        ]
+      )
+    );
+  }
+
+  Widget _quoteWidget() {
     String name = _quote.name;
     num lastPrice = _quote.lastPrice;
     num netChange = _quote.netChange;
@@ -69,44 +89,58 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
     TextSpan volumeTextWidget = new TextSpan(
       text: "$volume", style: new TextStyle(color: Colors.black));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_quote.symbol),
-      ),
-      body: new Container(
-        child: new Column(children: <Widget>[
-          new ListTile(
-            title: new RichText(
-              text: new TextSpan(
-                children: [nameTextWidget, priceTextWidget, changeTextWidget, ohlcTextWidget, volumeTextWidget]
-              )
-            )
-          ),
-          new Divider(),
-          _isLoading
-            ? new Center(child: new CircularProgressIndicator())
-            : _historyWidget()
-        ]) 
+    return new ListTile(
+      title: new RichText(
+        text: new TextSpan(
+          children: [nameTextWidget, priceTextWidget, changeTextWidget, ohlcTextWidget, volumeTextWidget]
+        )
       )
     );
   }
 
   Widget _historyWidget() {
-    return new Flexible(
-      child: new RefreshIndicator(
-        child: new ListView.builder(
-          itemCount: _history.length * 2, // Dividers are items too
-          itemBuilder: (BuildContext context, int index) {
-            final int i = index ~/ 2;
-            final History history = _history[i];
-            if (index.isOdd) {
-              return new Divider();
-            }
-            return _getListItemUi(history);
-          },
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.show_chart)),
+              Tab(icon: Icon(Icons.list)),
+            ],
+          ),
+        body: TabBarView(
+          children: [
+            _historyChartWidget(),
+            _historyListWidget(),
+          ],
         ),
-        onRefresh: _refresh,
+      )
+    );
+  }
+
+  Widget _historyListWidget() {
+    return new RefreshIndicator(
+      child: new ListView.builder(
+        itemCount: _history.length * 2, // Dividers are items too
+        itemBuilder: (BuildContext context, int index) {
+          final int i = index ~/ 2;
+          final History history = _history[i];
+          if (index.isOdd) {
+            return new Divider();
+          }
+          return _getListItemUi(history);
+        },
       ),
+      onRefresh: _refresh,
+    );
+  }
+
+  Widget _historyChartWidget() {
+    List data = _history.map((h) => {"open":h.open, "high":h.high, "low":h.low, "close":h.close, "volumeto":h.volume}).toList();
+    return new OHLCVGraph(
+      data: data,
+      enableGridLines: true,
+      volumeProp: 0.2,
     );
   }
 
@@ -132,8 +166,10 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
         text: "$volume", style: new TextStyle(color: Colors.black));
 
     return new RichText(
-        text: new TextSpan(
-            children: [ohlcTextWidget, volumeTextWidget]));
+      text: new TextSpan(
+        children: [ohlcTextWidget, volumeTextWidget]
+      )
+    );
   }
 
   @override

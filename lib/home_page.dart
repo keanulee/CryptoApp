@@ -21,62 +21,54 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
   @override
   void initState() {
     super.initState();
+    _isLoading = true;
     _refresh();
   }
 
   Future<void> _refresh() {
-    _isLoading = true;
     return _presenter.loadQuotes();
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        appBar: new AppBar(
-          title: new Text("Quotes"),
-          elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
-        ),
-        body: _isLoading
-            ? new Center(
-          child: new CircularProgressIndicator(),
-        )
-            : _quotesWidget());
+      appBar: new AppBar(
+        title: new Text("Quotes"),
+        elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
+      ),
+      body: _isLoading
+        ? new Center(child: new CircularProgressIndicator())
+        : _quotesList()
+    );
   }
 
-  Widget _quotesWidget() {
-    return new Container(
-        child: new Column(
-          children: <Widget>[
-            new Flexible(
-              child: new RefreshIndicator(
-                child: new ListView.builder(
-                  itemCount: _quotes.length * 2, // Dividers are items too
-                  itemBuilder: (BuildContext context, int index) {
-                    final int i = index ~/ 2;
-                    final Quote quote = _quotes[i];
-                    if (index.isOdd) {
-                      return new Divider();
-                    }
-                    return _getListItemUi(quote);
-                  },
-                ),
-                onRefresh: _refresh,
-              ),
-            ),
-          ],
-        ));
+  Widget _quotesList() {
+    return new RefreshIndicator(
+      child: new ListView.builder(
+        itemCount: _quotes.length * 2, // Dividers are items too
+        itemBuilder: (BuildContext context, int index) {
+          final int i = index ~/ 2;
+          final Quote quote = _quotes[i];
+          if (index.isOdd) {
+            return new Divider();
+          }
+          return _getListItemUi(quote);
+        },
+      ),
+      onRefresh: _refresh,
+    );
   }
 
   ListTile _getListItemUi(Quote quote) {
     return new ListTile(
       title: new Text(quote.symbol,
-          style: new TextStyle(fontWeight: FontWeight.bold)),
+        style: new TextStyle(fontWeight: FontWeight.bold)
+      ),
       subtitle: _getSubtitleText(quote),
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => DetailPage(quote: quote)));
+          context,
+          MaterialPageRoute(builder: (context) => DetailPage(quote: quote)));
       }
     );
   }
@@ -86,10 +78,15 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
     num lastPrice = quote.lastPrice;
     num netChange = quote.netChange;
     num percentageChange = quote.percentChange;
+
     TextSpan nameTextWidget = new TextSpan(
-        text: "$name\n", style: new TextStyle(color: Colors.black));
+      text: "$name\n",
+      style: new TextStyle(color: Colors.black)
+    );
     TextSpan priceTextWidget = new TextSpan(
-        text: "\$$lastPrice\n", style: new TextStyle(color: Colors.black));
+      text: "\$$lastPrice\n",
+      style: new TextStyle(color: Colors.black)
+    );
     TextSpan changeTextWidget;
 
     if (percentageChange > 0) {
@@ -105,8 +102,10 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
     }
 
     return new RichText(
-        text: new TextSpan(
-            children: [nameTextWidget, priceTextWidget, changeTextWidget]));
+      text: new TextSpan(
+        children: [nameTextWidget, priceTextWidget, changeTextWidget]
+      )
+    );
   }
 
   @override

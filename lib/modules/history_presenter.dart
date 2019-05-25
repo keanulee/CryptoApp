@@ -13,7 +13,7 @@ class HistoryListPresenter {
     _repository = new HistoryRepository();
   }
 
-  Future<void> loadHistorys(String symbol) {
+  Future<void> loadHistory(String symbol) {
     return _repository
         .fetchHistory(symbol)
         .then((c) => _view.onLoadHistoryComplete(c))
