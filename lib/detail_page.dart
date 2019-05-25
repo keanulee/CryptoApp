@@ -27,8 +27,12 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
   @override
   void initState() {
     super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() {
     _isLoading = true;
-    _presenter.loadHistorys(_quote.symbol);
+    return _presenter.loadHistorys(_quote.symbol);
   }
 
   Widget build(BuildContext context) {
@@ -89,16 +93,19 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
 
   Widget _historyWidget() {
     return new Flexible(
-      child: new ListView.builder(
-        itemCount: _history.length * 2, // Dividers are items too
-        itemBuilder: (BuildContext context, int index) {
-          final int i = index ~/ 2;
-          final History history = _history[i];
-          if (index.isOdd) {
-            return new Divider();
-          }
-          return _getListItemUi(history);
-        },
+      child: new RefreshIndicator(
+        child: new ListView.builder(
+          itemCount: _history.length * 2, // Dividers are items too
+          itemBuilder: (BuildContext context, int index) {
+            final int i = index ~/ 2;
+            final History history = _history[i];
+            if (index.isOdd) {
+              return new Divider();
+            }
+            return _getListItemUi(history);
+          },
+        ),
+        onRefresh: _refresh,
       ),
     );
   }

@@ -21,8 +21,12 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
   @override
   void initState() {
     super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() {
     _isLoading = true;
-    _presenter.loadQuotes();
+    return _presenter.loadQuotes();
   }
 
   @override
@@ -44,18 +48,21 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
         child: new Column(
           children: <Widget>[
             new Flexible(
-              child: new ListView.builder(
-                itemCount: _quotes.length * 2, // Dividers are items too
-                itemBuilder: (BuildContext context, int index) {
-                  final int i = index ~/ 2;
-                  final Quote quote = _quotes[i];
-                  if (index.isOdd) {
-                    return new Divider();
-                  }
-                  return _getListItemUi(quote);
-                },
+              child: new RefreshIndicator(
+                child: new ListView.builder(
+                  itemCount: _quotes.length * 2, // Dividers are items too
+                  itemBuilder: (BuildContext context, int index) {
+                    final int i = index ~/ 2;
+                    final Quote quote = _quotes[i];
+                    if (index.isOdd) {
+                      return new Divider();
+                    }
+                    return _getListItemUi(quote);
+                  },
+                ),
+                onRefresh: _refresh,
               ),
-            )
+            ),
           ],
         ));
   }

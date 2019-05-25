@@ -13,8 +13,8 @@ class QuoteListPresenter {
     _repository = new QuoteRepository();
   }
 
-  void loadQuotes() {
-    _repository
+  Future<void> loadQuotes() {
+    return _repository
         .fetchQuotes()
         .then((c) => _view.onLoadQuotesComplete(c))
         .catchError((onError) => _view.onLoadQuotesError());
