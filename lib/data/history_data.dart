@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+String apikey = '73f507126db3ece2eae3dc738fc4f54f';
+
 class History {
   String symbol;
   String tradingDay;
@@ -33,7 +35,7 @@ class History {
 
 class HistoryRepository {
   Future<List<History>> fetchHistory(String symbol) async {
-    String historyUrl = "https://marketdata.websol.barchart.com/getHistory.json?apikey=73f507126db3ece2eae3dc738fc4f54f&symbol=$symbol&type=daily&startDate=20190101&maxRecords=20";
+    String historyUrl = "https://marketdata.websol.barchart.com/getHistory.json?apikey=$apikey&symbol=$symbol&type=daily&startDate=20190101&maxRecords=20";
     http.Response response = await http.get(historyUrl);
     final Map responseBody = json.decode(response.body);
     final List results = responseBody["results"];

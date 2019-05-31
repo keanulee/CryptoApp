@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+String apikey = '73f507126db3ece2eae3dc738fc4f54f';
+
 class Quote {
   String symbol;
   String name;
@@ -41,8 +43,9 @@ class Quote {
 }
 
 class QuoteRepository {
-  String quoteUrl = "https://marketdata.websol.barchart.com/getQuote.json?apikey=73f507126db3ece2eae3dc738fc4f54f&symbols=SCHB%2CSCHF%2CSCHE%2CVTI%2CVXUS";
-  Future<List<Quote>> fetchQuotes() async {
+  Future<List<Quote>> fetchQuotes(List<String> symbolsList) async {
+    String symbols = symbolsList.join('%2C');
+    String quoteUrl = "https://marketdata.websol.barchart.com/getQuote.json?apikey=$apikey&symbols=$symbols";
     http.Response response = await http.get(quoteUrl);
     final Map responseBody = json.decode(response.body);
     final List results = responseBody["results"];

@@ -13,9 +13,9 @@ class QuoteListPresenter {
     _repository = new QuoteRepository();
   }
 
-  Future<void> loadQuotes() {
+  Future<void> loadQuotes(List<String> symbolsList) {
     return _repository
-        .fetchQuotes()
+        .fetchQuotes(symbolsList)
         .then((c) => _view.onLoadQuotesComplete(c))
         .catchError((onError) => _view.onLoadQuotesError());
   }

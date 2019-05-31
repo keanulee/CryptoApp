@@ -10,11 +10,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> implements QuoteListViewContract {
+  List<String> _symbolsList;
   QuoteListPresenter _presenter;
   List<Quote> _quotes;
   bool _isLoading;
 
   _HomePageState() {
+    _symbolsList = ['GOOG','SCHB','SCHF','SCHE','VTI','VXUS'];
     _presenter = new QuoteListPresenter(this);
   }
 
@@ -26,7 +28,40 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
   }
 
   Future<void> _refresh() {
-    return _presenter.loadQuotes();
+    return _presenter.loadQuotes(_symbolsList);
+  }
+
+  Future<void> _addSymbol() async {
+    TextEditingController controller = new TextEditingController();
+    String symbol = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Add symbol'),
+          children: <Widget>[
+            SimpleDialogOption(
+              child: new TextField(
+                decoration: new InputDecoration(hintText: 'Symbol'),
+                controller: controller,
+              ),
+            ),
+            SimpleDialogOption(
+              onPressed: () { Navigator.pop(context, controller.text); },
+              child: const Text('Add'),
+            ),
+            SimpleDialogOption(
+              onPressed: () { Navigator.pop(context, null); },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      }
+    );
+
+    if (symbol.isNotEmpty) {
+      _symbolsList.add(symbol);
+      await _refresh();
+    }
   }
 
   @override
@@ -35,6 +70,12 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
       appBar: new AppBar(
         title: new Text("Quotes"),
         elevation: defaultTargetPlatform == TargetPlatform.iOS ? 0.0 : 5.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: _addSymbol,
+          ),
+        ],
       ),
       body: _isLoading
         ? new Center(child: new CircularProgressIndicator())
@@ -44,16 +85,21 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
 
   Widget _quotesList() {
     return new RefreshIndicator(
-      child: new ListView.builder(
-        itemCount: _quotes.length * 2, // Dividers are items too
-        itemBuilder: (BuildContext context, int index) {
-          final int i = index ~/ 2;
-          final Quote quote = _quotes[i];
-          if (index.isOdd) {
-            return new Divider();
-          }
-          return _getListItemUi(quote);
+      child: new ListView.separated(
+        itemCount: _quotes.length, // Dividers are items too
+        itemBuilder: (context, index) {
+          Quote quote = _quotes[index];
+          return new Dismissible(
+            key: Key(quote.symbol),
+            background: Container(color: Colors.red),
+            onDismissed: (direction) => setState(() {
+              _symbolsList.removeAt(index);
+              _quotes.removeAt(index);
+            }),
+            child:_getListItemUi(quote)
+          );
         },
+        separatorBuilder: (context, index) => Divider(),
       ),
       onRefresh: _refresh,
     );

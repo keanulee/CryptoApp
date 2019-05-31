@@ -120,16 +120,10 @@ class _DetailPageState extends State<DetailPage> implements HistoryListViewContr
 
   Widget _historyListWidget() {
     return new RefreshIndicator(
-      child: new ListView.builder(
-        itemCount: _history.length * 2, // Dividers are items too
-        itemBuilder: (BuildContext context, int index) {
-          final int i = index ~/ 2;
-          final History history = _history[i];
-          if (index.isOdd) {
-            return new Divider();
-          }
-          return _getListItemUi(history);
-        },
+      child: new ListView.separated(
+        itemCount: _history.length,
+        itemBuilder: (context, index) => _getListItemUi(_history[index]),
+        separatorBuilder: (context, index) => Divider(),
       ),
       onRefresh: _refresh,
     );
