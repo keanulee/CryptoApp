@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'data/quote_data.dart';
 import 'modules/quote_presenter.dart';
 import 'detail_page.dart';
+
+final Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,15 +19,28 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
   bool _isLoading;
 
   _HomePageState() {
-    _symbolsList = ['GOOG','SCHB','SCHF','SCHE','VTI','VXUS'];
-    _presenter = new QuoteListPresenter(this);
+    _presenter = new QuoteListPresenter(this);;
   }
 
   @override
   void initState() {
     super.initState();
     _isLoading = true;
-    _refresh();
+    _loadSymbolsList();
+  }
+
+  Future<void> _loadSymbolsList() async {
+    SharedPreferences prefs = await prefsFuture;
+    _symbolsList = prefs.getStringList('symbols');
+    if (_symbolsList == null) {
+      _symbolsList = ['GOOG','SCHB','SCHF','SCHE','VTI','VXUS'];
+    }
+    return _refresh();
+  }
+
+  Future<bool> _saveSymbolsList() async {
+    SharedPreferences prefs = await prefsFuture;
+    return prefs.setStringList('symbols', _symbolsList);
   }
 
   Future<void> _refresh() {
@@ -60,6 +76,7 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
 
     if (symbol.isNotEmpty) {
       _symbolsList.add(symbol);
+      _saveSymbolsList();
       await _refresh();
     }
   }
@@ -94,6 +111,7 @@ class _HomePageState extends State<HomePage> implements QuoteListViewContract {
             background: Container(color: Colors.red),
             onDismissed: (direction) => setState(() {
               _symbolsList.removeAt(index);
+              _saveSymbolsList();
               _quotes.removeAt(index);
             }),
             child:_getListItemUi(quote)

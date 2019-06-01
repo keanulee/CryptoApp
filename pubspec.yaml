@@ -9,6 +9,7 @@ dependencies:
   cupertino_icons: ^0.1.0
   http: any
   flutter_candlesticks: ^0.1.3
+  shared_preferences: ^0.5.3
 
 dev_dependencies:
   flutter_test:
